@@ -23,7 +23,7 @@ class GamePortal {
     }
 
     bindEvents() {
-        // Use event delegation for game cards
+        // Event delegation for game cards
         this.gameList.addEventListener('click', (e) => {
             const gameCard = e.target.closest('.game-card');
             if (gameCard) {
@@ -43,6 +43,12 @@ class GamePortal {
             const response = await fetch('games.json');
             if (!response.ok) throw new Error('Failed to load games');
             this.games = await response.json();
+            
+            // Fix URLs for GitHub raw content
+            this.games.forEach(game => {
+                // Decode URL-encoded characters
+                game.url = decodeURIComponent(game.url);
+            });
         } catch (error) {
             console.error('Error loading games:', error);
             this.showError('Failed to load games. Please try again later.');
@@ -60,99 +66,98 @@ class GamePortal {
             return;
         }
 
-        // Use requestAnimationFrame for smoother rendering
-        requestAnimationFrame(() => {
-            this.gameList.innerHTML = this.games.map(game => `
-                <div class="game-card" data-game-id="${game.id}">
-                    <div class="image-container">
-                        <img 
-                            src="${game.image}" 
-                            alt="${game.title}" 
-                            class="game-image" 
-                            loading="lazy"
-                            onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 300 200%22><rect fill=%22%23667eea%22 width=%22300%22 height=%22200%22/><text fill=%22white%22 font-family=%22Arial%22 font-size=%2220%22 x=%22150%22 y=%22100%22 text-anchor=%22middle%22>${encodeURIComponent(game.title)}</text></svg>'"
-                        >
-                    </div>
-                    <div class="game-content">
-                        <span class="game-category">${game.category}</span>
-                        <h3>${game.title}</h3>
-                        <p class="game-description">${game.description}</p>
-                        <div class="play-button">
-                            <i class="fas fa-play"></i> Play Now
-                        </div>
+        this.gameList.innerHTML = this.games.map(game => `
+            <div class="game-card" data-game-id="${game.id}">
+                <div class="image-container">
+                    <img 
+                        src="${game.image}" 
+                        alt="${game.title}" 
+                        class="game-image" 
+                        loading="lazy"
+                        onerror="this.onerror=null; this.src='data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 300 200\"><rect fill=\"%23667eea\" width=\"300\" height=\"200\"/><text fill=\"white\" font-family=\"Arial\" font-size=\"20\" x=\"150\" y=\"100\" text-anchor=\"middle\">${game.title.replace(/[^a-zA-Z0-9 ]/g, '')}</text></svg>'"
+                    >
+                </div>
+                <div class="game-content">
+                    <span class="game-category">${game.category}</span>
+                    <h3>${game.title}</h3>
+                    <p class="game-description">${game.description}</p>
+                    <div class="play-button">
+                        <i class="fas fa-play"></i> Play Now
                     </div>
                 </div>
-            `).join('');
-
-            // Preload first few images for better UX
-            this.preloadImages();
-        });
+            </div>
+        `).join('');
     }
 
-    preloadImages() {
-        // Preload first 3 images
-        this.games.slice(0, 3).forEach(game => {
-            const img = new Image();
-            img.src = game.image;
-        });
-    }
-
-    playGame(game) {
+    async playGame(game) {
+        console.log('Loading game:', game.title, 'from:', game.url);
+        
         this.currentGame = game;
         
-        // Update game info immediately
+        // Update game info
         this.gameTitle.textContent = game.title;
         this.gameCategory.textContent = game.category;
         this.gameControls.textContent = "Click to play • Use arrow keys or mouse";
         
-        // Use a timeout to ensure smooth transition
-        setTimeout(() => {
-            this.switchToGameView();
-            this.loadGameFrame(game.url);
-        }, 100);
-    }
-
-    switchToGameView() {
+        // Show loading state
+        const iframeContainer = this.gameFrame.parentElement;
+        const loadingElement = iframeContainer.querySelector('.iframe-loading');
+        loadingElement.classList.remove('hidden');
+        
+        // Switch views
         this.gameList.classList.add('hidden');
         this.gameFrameContainer.classList.remove('hidden');
         this.backToListBtn.classList.remove('hidden');
         
-        // Smooth scroll to top
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-    }
-
-    loadGameFrame(url) {
-        const iframeContainer = this.gameFrame.parentElement;
-        const loadingElement = iframeContainer.querySelector('.iframe-loading');
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         
-        // Show loading
-        loadingElement.classList.remove('hidden');
-        
-        // Reset and load iframe
-        this.gameFrame.src = '';
-        
-        // Use timeout to ensure smooth loading
-        setTimeout(() => {
-            this.gameFrame.src = url;
+        // Load game in iframe
+        try {
+            // First, fetch the HTML content to check if it's valid
+            console.log('Fetching game from:', game.url);
             
-            // Hide loading after iframe loads
-            this.gameFrame.onload = () => {
-                setTimeout(() => {
-                    loadingElement.classList.add('hidden');
-                }, 300);
-            };
+            // Set iframe source after a small delay to ensure view transition
+            setTimeout(() => {
+                this.gameFrame.src = game.url;
+                
+                // Set up load and error handlers
+                this.gameFrame.onload = () => {
+                    console.log('Game loaded successfully');
+                    setTimeout(() => {
+                        loadingElement.classList.add('hidden');
+                    }, 500);
+                };
+                
+                this.gameFrame.onerror = (error) => {
+                    console.error('Failed to load game in iframe:', error);
+                    loadingElement.innerHTML = `
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>Failed to load game</h3>
+                            <p>This game cannot be loaded in an iframe.</p>
+                            <p class="small">This is usually because the game's server blocks iframe embedding.</p>
+                            <button onclick="window.open('${game.url}', '_blank')" class="btn">
+                                <i class="fas fa-external-link-alt"></i> Open in New Tab
+                            </button>
+                        </div>
+                    `;
+                };
+            }, 300);
             
-            this.gameFrame.onerror = () => {
-                loadingElement.innerHTML = `
+        } catch (error) {
+            console.error('Error loading game:', error);
+            loadingElement.innerHTML = `
+                <div class="error-message">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <p>Failed to load game. The game may not support iframe embedding.</p>
-                    <p style="margin-top: 10px; font-size: 0.9em;">Try: <a href="${url}" target="_blank" rel="noopener">Open in new tab</a></p>
-                `;
-            };
-        }, 200);
+                    <h3>Error Loading Game</h3>
+                    <p>${error.message}</p>
+                    <button onclick="window.open('${game.url}', '_blank')" class="btn">
+                        <i class="fas fa-external-link-alt"></i> Open in New Tab
+                    </button>
+                </div>
+            `;
+        }
     }
 
     showGameList() {
@@ -167,10 +172,7 @@ class GamePortal {
         this.currentGame = null;
         
         // Smooth scroll to top
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     showError(message) {
@@ -183,10 +185,7 @@ class GamePortal {
     }
 }
 
-// Initialize with debounce to prevent multiple init
-let gamePortalInstance = null;
+// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    if (!gamePortalInstance) {
-        gamePortalInstance = new GamePortal();
-    }
+    new GamePortal();
 });
