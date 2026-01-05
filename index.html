@@ -11,47 +11,12 @@
     <div class="container">
         <header>
             <h1><i class="fas fa-gamepad"></i> Game Portal</h1>
-            <p class="subtitle">Click any game to play instantly</p>
-            
-            <!-- Search and Filter Controls -->
-            <div class="controls">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="Search games by name or description...">
-                    <button id="clearSearch" class="clear-btn hidden">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <div class="filter-controls">
-                    <div class="category-filters">
-                        <button class="category-filter active" data-category="all">
-                            <i class="fas fa-globe"></i> All Games
-                        </button>
-                        <button class="category-filter" data-category="favorites">
-                            <i class="fas fa-star"></i> Favorites
-                        </button>
-                    </div>
-                    
-                    <div class="sort-controls">
-                        <select id="sortSelect">
-                            <option value="name-asc">Sort by: Name A-Z</option>
-                            <option value="name-desc">Name Z-A</option>
-                            <option value="newest">Newest First</option>
-                            <option value="oldest">Oldest First</option>
-                        </select>
-                    </div>
-                </div>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search games...">
             </div>
         </header>
 
         <main>
-            <div class="view-controls">
-                <button id="backToList" class="btn hidden">
-                    <i class="fas fa-arrow-left"></i> Back to Games
-                </button>
-            </div>
-
             <div id="gameList" class="game-grid">
                 <!-- Games will be loaded here -->
                 <div class="loading">
@@ -59,35 +24,15 @@
                     <p>Loading games...</p>
                 </div>
             </div>
-            
-            <!-- No Results Message -->
-            <div id="noResults" class="no-results hidden">
-                <i class="fas fa-gamepad"></i>
-                <h3>No Games Found</h3>
-                <p>Try a different search term or category filter</p>
-                <button id="resetFilters" class="btn">
-                    <i class="fas fa-redo"></i> Reset All Filters
-                </button>
-            </div>
 
             <div id="gameFrameContainer" class="hidden">
                 <div class="game-header">
-                    <div class="game-title-section">
-                        <h2 id="gameTitle"></h2>
-                        <button id="toggleFavorite" class="favorite-btn">
-                            <i class="far fa-star"></i>
-                        </button>
-                    </div>
-                    <div class="game-info">
-                        <span id="gameCategory"></span>
-                        <span id="gameControls"></span>
-                    </div>
+                    <h2 id="gameTitle"></h2>
+                    <button id="backToList" class="back-btn">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
                 </div>
                 <div class="iframe-container">
-                    <div class="iframe-loading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Loading game...</p>
-                    </div>
                     <iframe 
                         id="gameFrame" 
                         frameborder="0" 
@@ -99,13 +44,8 @@
         </main>
 
         <footer>
-            <p>Game Portal • <span id="gameCount">0</span> Games Available • Favorites: <span id="favoriteCount">0</span></p>
+            <p id="footerText">Loading games...</p>
         </footer>
-        
-        <!-- Back to Top Button -->
-        <button id="backToTop" class="back-to-top hidden">
-            <i class="fas fa-chevron-up"></i>
-        </button>
     </div>
 
     <script src="script.js"></script>
