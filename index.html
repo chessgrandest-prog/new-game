@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-gamepad"></i> Game Portal</h1>
+            <p class="subtitle">Click any game to play instantly</p>
+        </header>
+
+        <main>
+            <div class="view-controls">
+                <button id="backToList" class="btn hidden">
+                    <i class="fas fa-arrow-left"></i> Back to Games
+                </button>
+            </div>
+
+            <div id="gameList" class="game-grid">
+                <!-- Games will be loaded here -->
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading games...</p>
+                </div>
+            </div>
+
+            <div id="gameFrameContainer" class="hidden">
+                <div class="game-header">
+                    <h2 id="gameTitle"></h2>
+                    <div class="game-info">
+                        <span id="gameCategory"></span>
+                        <span id="gameControls"></span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <div class="iframe-loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading game...</p>
+                    </div>
+                    <iframe 
+                        id="gameFrame" 
+                        frameborder="0" 
+                        allow="fullscreen" 
+                        title="Game">
+                    </iframe>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Game Portal • Games load in iframe • Deployed on Cloudflare Pages</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
